@@ -3,87 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="JF Tracker">
+    
     <title>Joseph Fitness - My Tracker</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { slate: { 850: '#151e2e', 855: '#1a2333' } }
+                    colors: {
+                        slate: { 850: '#151e2e', 855: '#1a2333' }
+                    }
                 }
             }
         }
     </script>
+    
     <style>
-        body { background-color: #0f172a; color: #f1f5f9; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        body { 
+            background-color: #0f172a; 
+            color: #f1f5f9; 
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 </head>
 <body>
     <div id="root"></div>
+
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        const MY_WORKOUT = {
-          clientName: 'Joseph',
-          days: [
-            {
-              name: 'Giorno 1 - Tirata & Bicipiti',
-              exercises: [
-                { id: 'g1-ex1', name: 'Rematore', sets: '2', reps: '12', rest: '90' },
-                { id: 'g1-ex2', name: 'Lat Machine presa neutra', sets: '2', reps: '6', rest: '120' },
-                { id: 'g1-ex3', name: 'Face Pull', sets: '2', reps: '12', rest: '90' },
-                { id: 'g1-ex4', name: 'Bicipiti cavi seduto', sets: '2', reps: '12', rest: '90' },
-                { id: 'g1-ex5', name: 'Martello', sets: '2', reps: '6', rest: '90' },
-                { id: 'g1-ex6', name: 'Addominali', sets: '2', reps: '15', rest: '60' }
-              ]
-            },
-            {
-              name: 'Giorno 2 - Spalle, Gambe & Cardio',
-              exercises: [
-                { id: 'g2-ex1', name: 'Military Press', sets: '2', reps: '12', rest: '120' },
-                { id: 'g2-ex2', name: 'Alzate frontali cavo', sets: '2', reps: '12', rest: '90' },
-                { id: 'g2-ex3', name: 'Leg Extension', sets: '2', reps: '12', rest: '90' },
-                { id: 'g2-ex4', name: 'Pressa', sets: '2', reps: '6', rest: '120' },
-                { id: 'g2-ex5', name: 'Adduttori', sets: '2', reps: '12', rest: '90' },
-                { id: 'g2-ex6', name: 'Addominali', sets: '2', reps: '15', rest: '60' },
-                { id: 'g2-ex7', name: 'Camminata 18% pendenza', sets: '1', reps: '5 min', rest: '0' }
-              ]
-            },
-            {
-              name: 'Giorno 3 - Petto & Tricipiti',
-              exercises: [
-                { id: 'g3-ex1', name: 'Croci ai cavi', sets: '2', reps: '12', rest: '90' },
-                { id: 'g3-ex2', name: 'Spinte cavi', sets: '2', reps: '6', rest: '120' },
-                { id: 'g3-ex3', name: 'Croci cavi bassi', sets: '2', reps: '12', rest: '90' },
-                { id: 'g3-ex4', name: 'Pushdown', sets: '2', reps: '12', rest: '90' },
-                { id: 'g3-ex5', name: 'Estensione sopra la testa', sets: '2', reps: '12', rest: '90' }
-              ]
-            }
-          ]
+        // DATABASE DELLE DUE SCHEDE CON RECUPERO A 4 MINUTI (240s)
+        const WORKOUTS = {
+          joseph: {
+            clientName: 'Joseph',
+            accentColor: 'emerald',
+            days: [
+              {
+                name: 'Giorno 1 - Tirata & Bicipiti',
+                exercises: [
+                  { id: 'j-g1-ex1', name: 'Rematore', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g1-ex2', name: 'Lat Machine presa neutra', sets: '2', reps: '6', rest: '240' },
+                  { id: 'j-g1-ex3', name: 'Face Pull', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g1-ex4', name: 'Bicipiti cavi seduto', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g1-ex5', name: 'Martello', sets: '2', reps: '6', rest: '240' },
+                  { id: 'j-g1-ex6', name: 'Addominali', sets: '2', reps: '15', rest: '240' }
+                ]
+              },
+              {
+                name: 'Giorno 2 - Spalle, Gambe & Cardio',
+                exercises: [
+                  { id: 'j-g2-ex1', name: 'Military Press', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g2-ex2', name: 'Alzate frontali cavo', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g2-ex3', name: 'Leg Extension', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g2-ex4', name: 'Pressa', sets: '2', reps: '6', rest: '240' },
+                  { id: 'j-g2-ex5', name: 'Adduttori', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g2-ex6', name: 'Addominali', sets: '2', reps: '15', rest: '240' },
+                  { id: 'j-g2-ex7', name: 'Camminata 18% pendenza', sets: '1', reps: '5 min', rest: '0' }
+                ]
+              },
+              {
+                name: 'Giorno 3 - Petto & Tricipiti',
+                exercises: [
+                  { id: 'j-g3-ex1', name: 'Croci ai cavi', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g3-ex2', name: 'Spinte cavi', sets: '2', reps: '6', rest: '240' },
+                  { id: 'j-g3-ex3', name: 'Croci cavi bassi', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g3-ex4', name: 'Pushdown', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g3-ex5', name: 'Estensione sopra la testa', sets: '2', reps: '12', rest: '240' }
+                ]
+              }
+            ]
+          },
+          giada: {
+            clientName: 'Giada',
+            accentColor: 'rose',
+            days: [
+              {
+                name: 'Giorno 1 - Glutei & Quad',
+                exercises: [
+                  { id: 'g-g1-ex1', name: 'Hip Thrust', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g1-ex2', name: 'Leg press', sets: '2', reps: '6', rest: '240' },
+                  { id: 'g-g1-ex3', name: 'Leg Extension', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g1-ex4', name: 'Abductor Machine', sets: '2', reps: '6', rest: '240' },
+                  { id: 'g-g1-ex5', name: 'Addome cable crunch', sets: '2', reps: '10-12', rest: '240' }
+                ]
+              },
+              {
+                name: 'Giorno 2 - Upper Body & Spalle',
+                exercises: [
+                  { id: 'g-g2-ex1', name: 'Lat Machine', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g2-ex2', name: 'Seated Row', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g2-ex3', name: 'Shoulder Press', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g2-ex4', name: 'Alzate Laterali', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g2-ex5', name: 'Tricipiti', sets: '2', reps: '6', rest: '240' }
+                ]
+              },
+              {
+                name: 'Giorno 3 - Lower Body & Braccia',
+                exercises: [
+                  { id: 'g-g3-ex1', name: 'Hack Squat', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g3-ex2', name: 'Hip Thrust', sets: '2', reps: '6', rest: '240' },
+                  { id: 'g-g3-ex3', name: 'Leg Curl', sets: '2', reps: '12', rest: '240' },
+                  { id: 'g-g3-ex4', name: 'Bicipiti cavi bassi', sets: '2', reps: '6', rest: '240' },
+                  { id: 'g-g3-ex5', name: 'Addome cable crunch', sets: '2', reps: '10-12', rest: '240' }
+                ]
+              }
+            ]
+          }
         };
 
         function App() {
+          const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('jf_current_user') || null);
           const [activeDayIndex, setActiveDayIndex] = useState(0);
           const [toastMessage, setToastMessage] = useState(null);
-          const [gymLogs, setGymLogs] = useState(() => {
-            const savedLogs = localStorage.getItem('joseph_stable_logs');
-            return savedLogs ? JSON.parse(savedLogs) : {};
-          });
+          const [gymLogs, setGymLogs] = useState({});
+
+          // Imposta 240 secondi (4 minuti) come timer base all'avvio
           const [timerActive, setTimerActive] = useState(false);
-          const [timerDuration, setTimerDuration] = useState(90);
-          const [timeLeft, setTimeLeft] = useState(90);
+          const [timerDuration, setTimerDuration] = useState(240);
+          const [timeLeft, setTimeLeft] = useState(240);
           const timerIntervalRef = useRef(null);
 
           useEffect(() => {
-            localStorage.setItem('joseph_stable_logs', JSON.stringify(gymLogs));
-          }, [gymLogs]);
+            if (currentUser) {
+              const savedLogs = localStorage.getItem(`jf_logs_${currentUser}`);
+              setGymLogs(savedLogs ? JSON.parse(savedLogs) : {});
+            }
+          }, [currentUser]);
 
           useEffect(() => {
             if (timerActive && timeLeft > 0) {
@@ -111,14 +172,18 @@
 
           const handleLogChange = (exId, setIdx, field, value) => {
             const key = `${exId}-${setIdx}-${field}`;
-            setGymLogs(prev => ({ ...prev, [key]: value }));
+            setGymLogs(prev => {
+              const newLogs = { ...prev, [key]: value };
+              localStorage.setItem(`jf_logs_${currentUser}`, JSON.stringify(newLogs));
+              return newLogs;
+            });
           };
 
           const startTimer = (seconds) => {
             setTimerDuration(seconds);
             setTimeLeft(seconds);
             setTimerActive(true);
-            showToast(`⏱️ Timer avviato: ${seconds}s`);
+            showToast(`⏱️ Timer avviato: ${formatTime(seconds)}`);
           };
 
           const formatTime = (secs) => {
@@ -127,36 +192,121 @@
             return `${mins}:${rem < 10 ? '0' : ''}${rem}`;
           };
 
+          const handleLogin = (userKey) => {
+            setCurrentUser(userKey);
+            localStorage.setItem('jf_current_user', userKey);
+            setActiveDayIndex(0);
+          };
+
+          const handleLogout = () => {
+            setCurrentUser(null);
+            localStorage.removeItem('jf_current_user');
+            setTimerActive(false);
+          };
+
+          // SCHERMATA LOGIN
+          if (!currentUser) {
+            return (
+              <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 fade-in">
+                <div className="bg-slate-850 p-8 rounded-3xl shadow-2xl border border-slate-800 w-full max-w-sm text-center space-y-8">
+                  <div className="space-y-2">
+                    <div className="mx-auto bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                      <span className="text-3xl">🏋️‍♂️</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-white tracking-tight">Chi si allena oggi?</h1>
+                    <p className="text-sm text-slate-400 font-medium">Seleziona il tuo profilo per caricare la scheda</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <button 
+                      onClick={() => handleLogin('joseph')}
+                      className="w-full group relative bg-slate-900 border border-slate-700 hover:border-emerald-500 p-4 rounded-2xl transition-all duration-300 flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-emerald-500/20 text-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">J</div>
+                        <div className="text-left">
+                          <h2 className="text-white font-bold text-lg group-hover:text-emerald-400 transition-colors">Joseph</h2>
+                          <p className="text-xs text-slate-500 font-medium">3 Giorni Split</p>
+                        </div>
+                      </div>
+                      <span className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
+                    </button>
+
+                    <button 
+                      onClick={() => handleLogin('giada')}
+                      className="w-full group relative bg-slate-900 border border-slate-700 hover:border-rose-500 p-4 rounded-2xl transition-all duration-300 flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-rose-500/20 text-rose-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">G</div>
+                        <div className="text-left">
+                          <h2 className="text-white font-bold text-lg group-hover:text-rose-400 transition-colors">Giada</h2>
+                          <p className="text-xs text-slate-500 font-medium">Glutei & Upper</p>
+                        </div>
+                      </div>
+                      <span className="text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // SCHERMATA ALLENAMENTO
+          const workoutData = WORKOUTS[currentUser];
+          const colorAccent = currentUser === 'joseph' ? 'emerald' : 'rose';
+          
           return (
-            <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-28 select-none">
+            <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-28 select-none fade-in">
               {toastMessage && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-slate-950 font-black px-6 py-3 rounded-full shadow-2xl border border-emerald-400 text-xs uppercase tracking-wider">
+                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-${colorAccent}-500 text-slate-950 font-black px-6 py-3 rounded-full shadow-2xl border border-${colorAccent}-400 text-xs uppercase tracking-wider`}>
                   {toastMessage}
                 </div>
               )}
+
               <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
-                  <span className="bg-emerald-500 text-slate-950 px-2 py-1 rounded-lg font-black text-xs">JF</span>
-                  <h1 className="text-sm font-bold tracking-tight">Gym Workout Tracker</h1>
+                  <span className={`bg-${colorAccent}-500 text-slate-950 px-2 py-1 rounded-lg font-black text-xs`}>
+                    {currentUser === 'joseph' ? 'JF' : 'GF'}
+                  </span>
+                  <h1 className="text-sm font-bold tracking-tight">Tracker</h1>
                 </div>
-                <span className="text-[11px] font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded-md border border-slate-700">Atleta: {MY_WORKOUT.clientName}</span>
+                <button 
+                  onClick={handleLogout}
+                  className="text-[11px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center space-x-1"
+                >
+                  <span>👤 Cambia</span>
+                </button>
               </header>
+
               <main className="max-w-md mx-auto px-3 mt-4 space-y-4">
+                
                 <div className="grid grid-cols-3 gap-1 bg-slate-850 p-1 rounded-xl border border-slate-800">
-                  {MY_WORKOUT.days.map((day, idx) => (
-                    <button key={idx} onClick={() => setActiveDayIndex(idx)} className={`py-2.5 text-[11px] font-black rounded-lg transition-all text-center ${activeDayIndex === idx ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-400'}`}>
+                  {workoutData.days.map((day, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveDayIndex(idx)}
+                      className={`py-2.5 text-[11px] font-black rounded-lg transition-all text-center ${
+                        activeDayIndex === idx ? `bg-slate-700 text-${colorAccent}-400 shadow-sm` : 'text-slate-400'
+                      }`}
+                    >
                       {day.name.split(' - ')[0]}
                     </button>
                   ))}
                 </div>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">{MY_WORKOUT.days[activeDayIndex]?.name}</h2>
+
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">
+                  {workoutData.days[activeDayIndex]?.name}
+                </h2>
+
                 <div className="space-y-3">
-                  {MY_WORKOUT.days[activeDayIndex]?.exercises.map((ex, exIdx) => (
+                  {workoutData.days[activeDayIndex]?.exercises.map((ex, exIdx) => (
                     <div key={ex.id} className="bg-slate-850 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+                      
                       <div className="flex justify-between items-baseline">
                         <h3 className="text-sm font-black text-white">{exIdx + 1}. {ex.name}</h3>
                         <span className="text-[11px] font-bold text-slate-400">Target: {ex.sets}x{ex.reps}</span>
                       </div>
+
                       <div className="space-y-2 pt-2 border-t border-slate-800/60">
                         <div className="grid grid-cols-12 text-[9px] uppercase font-black tracking-wider text-slate-500 text-center">
                           <div className="col-span-2 text-left">Set</div>
@@ -164,54 +314,84 @@
                           <div className="col-span-3">Reps</div>
                           <div className="col-span-3">Difficoltà</div>
                         </div>
+
                         {Array.from({ length: parseInt(ex.sets, 10) || 1 }).map((_, setIdx) => {
                           const weightKey = `${ex.id}-${setIdx}-weight`;
                           const repsKey = `${ex.id}-${setIdx}-reps`;
                           const rpeKey = `${ex.id}-${setIdx}-rpe`;
+                          
                           return (
                             <div key={setIdx} className="grid grid-cols-12 items-center gap-1.5 bg-slate-900/40 p-1 rounded-lg">
                               <div className="col-span-2 text-xs font-black text-slate-500 text-center">#{setIdx + 1}</div>
+                              
                               <div className="col-span-4 bg-slate-900 border border-slate-700 rounded-md flex items-center px-1">
-                                <input type="number" placeholder="-" value={gymLogs[weightKey] || ''} onChange={(e) => handleLogChange(ex.id, setIdx, 'weight', e.target.value)} className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-emerald-400" />
+                                <input
+                                  type="number"
+                                  placeholder="-"
+                                  value={gymLogs[weightKey] || ''}
+                                  onChange={(e) => handleLogChange(ex.id, setIdx, 'weight', e.target.value)}
+                                  className={`w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-${colorAccent}-400`}
+                                />
                                 <span className="text-[9px] text-slate-500 font-bold pr-0.5">kg</span>
                               </div>
+
                               <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
-                                <input type="number" placeholder={ex.reps} value={gymLogs[repsKey] || ''} onChange={(e) => handleLogChange(ex.id, setIdx, 'reps', e.target.value)} className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-blue-400" />
+                                <input
+                                  type="number"
+                                  placeholder={ex.reps}
+                                  value={gymLogs[repsKey] || ''}
+                                  onChange={(e) => handleLogChange(ex.id, setIdx, 'reps', e.target.value)}
+                                  className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-blue-400"
+                                />
                               </div>
+
                               <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
-                                <select value={gymLogs[rpeKey] || ''} onChange={(e) => handleLogChange(ex.id, setIdx, 'rpe', e.target.value)} className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-amber-400 appearance-none">
+                                <select
+                                  value={gymLogs[rpeKey] || ''}
+                                  onChange={(e) => handleLogChange(ex.id, setIdx, 'rpe', e.target.value)}
+                                  className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-amber-400 appearance-none"
+                                >
                                   <option value="">RPE</option>
-                                  {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6].map(v => <option key={v} value={v} className="bg-slate-900 text-white">@{v}</option>)}
+                                  {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6].map(v => (
+                                    <option key={v} value={v} className="bg-slate-900 text-white">@{v}</option>
+                                  ))}
                                 </select>
                               </div>
                             </div>
                           );
                         })}
                       </div>
+                      
                       {ex.rest !== '0' && (
-                        <button onClick={() => startTimer(parseInt(ex.rest, 10))} className="w-full bg-slate-800 border border-slate-700 text-slate-400 py-1 rounded-md text-[10px] font-bold active:bg-slate-750 transition-all">
-                          ⏳ Serie chiusa! Fai partire {ex.rest}s di pausa
+                        <button 
+                          onClick={() => startTimer(parseInt(ex.rest, 10))}
+                          className="w-full bg-slate-800 border border-slate-700 text-slate-400 py-1.5 rounded-lg text-[10px] font-bold active:bg-slate-750 transition-all mt-1"
+                        >
+                          ⏳ Serie chiusa! Pausa {formatTime(parseInt(ex.rest, 10))}
                         </button>
                       )}
                     </div>
                   ))}
                 </div>
+
                 <div className="fixed bottom-4 left-3 right-3 max-w-md mx-auto bg-slate-850/95 border border-slate-700 p-3 rounded-xl shadow-2xl flex items-center justify-between backdrop-blur-md z-30">
                   <div>
                     <p className="text-[9px] uppercase tracking-wider font-black text-slate-400">Recupero Attivo</p>
-                    <p className="text-xl font-mono font-black text-emerald-400">{formatTime(timeLeft)}</p>
+                    <p className={`text-xl font-mono font-black text-${colorAccent}-400`}>{formatTime(timeLeft)}</p>
                   </div>
                   <div className="flex space-x-1.5">
-                    <button onClick={() => setTimerActive(!timerActive)} className={`px-4 py-2 text-xs font-black rounded-lg ${timerActive ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500 text-slate-950'}`}>
+                    <button onClick={() => setTimerActive(!timerActive)} className={`px-4 py-2 text-xs font-black rounded-lg ${timerActive ? 'bg-amber-500 text-slate-950' : `bg-${colorAccent}-500 text-slate-950`}`}>
                       {timerActive ? 'Pausa' : 'Avvia'}
                     </button>
                     <button onClick={() => { setTimerActive(false); setTimeLeft(timerDuration); }} className="bg-slate-900 border border-slate-700 px-3 py-2 text-xs font-bold rounded-lg text-slate-400">Reset</button>
                   </div>
                 </div>
+
               </main>
             </div>
           );
         }
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
