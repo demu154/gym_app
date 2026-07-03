@@ -22,8 +22,8 @@
                         slate: { 850: '#151e2e', 855: '#1a2333' }
                     },
                     animation: {
-                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-                        'pop-bounce': 'popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
+                        'pop-bounce': 'popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both'
                     },
                     keyframes: {
                         slideUp: {
@@ -53,26 +53,23 @@
             margin: 0;
         }
         
-        /* Classe per l'effetto gravità cinetica durante lo scroll */
-        .gravity-item {
-            opacity: 0;
-            transform: translateY(40px) scale(0.96);
-            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        /* Effetto cascata-gravità sicuro al 100% in CSS puro */
+        .gravity-drop {
+            animation: gravityDrop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
             will-change: transform, opacity;
         }
-        
-        /* Quando l'elemento entra nel viewport, "atterra" dolcemente */
-        .gravity-item.is-visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+        @keyframes gravityDrop {
+            0% { opacity: 0; transform: translateY(40px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         
+        /* Animazione verde di conferma serie */
         .glow-success {
             animation: successGlow 0.6s ease-out;
         }
         @keyframes successGlow {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); border-color: rgba(16, 185, 129, 0.8); }
-            70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); border-color: #1e293b; }
+            70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); border-color: #1e293b; }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); border-color: #1e293b; }
         }
     </style>
@@ -165,102 +162,6 @@
           }
         };
 
-        // COMPONENTE CARD CON EFFETTO GRAVITÀ SULLO SCROLL
-        function AnimatedExerciseCard({ ex, exIdx, colorAccent, gymLogs, handleLogChange, startTimer, isAnimating }) {
-          const cardRef = useRef(null);
-
-          useEffect(() => {
-            const observer = new IntersectionObserver(
-              ([entry]) => {
-                if (entry.isIntersecting) {
-                  entry.target.classList.add('is-visible');
-                }
-              },
-              { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
-            );
-
-            if (cardRef.current) observer.observe(cardRef.current);
-            return () => observer.disconnect();
-          }, [ex.id]);
-
-          return (
-            <div 
-              ref={cardRef}
-              className={`gravity-item bg-slate-850 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3 transition-all duration-300 
-              ${isAnimating ? 'glow-success' : ''}`}
-            >
-              <div className="flex justify-between items-baseline">
-                <h3 className="text-sm font-black text-white">{exIdx + 1}. {ex.name}</h3>
-                <span className="text-[11px] font-bold text-slate-400">Target: {ex.sets}x{ex.reps}</span>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-slate-800/60">
-                <div className="grid grid-cols-12 text-[9px] uppercase font-black tracking-wider text-slate-500 text-center">
-                  <div className="col-span-2 text-left">Set</div>
-                  <div className="col-span-4">Kg</div>
-                  <div className="col-span-3">Reps</div>
-                  <div className="col-span-3">Difficoltà</div>
-                </div>
-
-                {Array.from({ length: parseInt(ex.sets, 10) || 1 }).map((_, setIdx) => {
-                  const weightKey = `${ex.id}-${setIdx}-weight`;
-                  const repsKey = `${ex.id}-${setIdx}-reps`;
-                  const rpeKey = `${ex.id}-${setIdx}-rpe`;
-                  
-                  return (
-                    <div key={setIdx} className="grid grid-cols-12 items-center gap-1.5 bg-slate-900/40 p-1 rounded-lg">
-                      <div className="col-span-2 text-xs font-black text-slate-500 text-center">#{setIdx + 1}</div>
-                      
-                      <div className="col-span-4 bg-slate-900 border border-slate-700 rounded-md flex items-center px-1 focus-within:border-emerald-500 transition-colors">
-                        <input
-                          type="number"
-                          placeholder="-"
-                          value={gymLogs[weightKey] || ''}
-                          onChange={(e) => handleLogChange(ex.id, setIdx, 'weight', e.target.value)}
-                          className={`w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-${colorAccent}-400`}
-                        />
-                        <span className="text-[9px] text-slate-500 font-bold pr-0.5">kg</span>
-                      </div>
-
-                      <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
-                        <input
-                          type="number"
-                          placeholder={ex.reps}
-                          value={gymLogs[repsKey] || ''}
-                          onChange={(e) => handleLogChange(ex.id, setIdx, 'reps', e.target.value)}
-                          className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-blue-400"
-                        />
-                      </div>
-
-                      <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
-                        <select
-                          value={gymLogs[rpeKey] || ''}
-                          onChange={(e) => handleLogChange(ex.id, setIdx, 'rpe', e.target.value)}
-                          className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-amber-400 appearance-none"
-                        >
-                          <option value="">RPE</option>
-                          {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6].map(v => (
-                            <option key={v} value={v} className="bg-slate-900 text-white">@{v}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {ex.rest !== '0' && (
-                <button 
-                  onClick={() => startTimer(parseInt(ex.rest, 10), ex.id)}
-                  className="w-full bg-slate-800 border border-slate-700 text-slate-300 py-2 rounded-lg text-[10px] font-bold active:scale-95 active:bg-slate-700 transition-all duration-200 ease-out mt-2"
-                >
-                  ⏳ Serie chiusa! Pausa {Math.floor(ex.rest / 60)}:00
-                </button>
-              )}
-            </div>
-          );
-        }
-
         function App() {
           const [currentUser, setCurrentUser] = useState(() => localStorage.getItem('jf_current_user') || null);
           const [activeDayIndex, setActiveDayIndex] = useState(0);
@@ -287,7 +188,7 @@
                   if (prev <= 1) {
                     clearInterval(timerIntervalRef.current);
                     setTimerActive(false);
-                    showToast("⏱️ Recupero terminato! Prossima serie!");
+                    showToast("⏱️ Recupero terminato! Sotto con la prossima serie!");
                     return 0;
                   }
                   return prev - 1;
@@ -331,125 +232,202 @@
             return `${mins}:${rem < 10 ? '0' : ''}${rem}`;
           };
 
+          const handleLogin = (userKey) => {
+            setCurrentUser(userKey);
+            localStorage.setItem('jf_current_user', userKey);
+            setActiveDayIndex(0);
+          };
+
+          const handleLogout = () => {
+            setCurrentUser(null);
+            localStorage.removeItem('jf_current_user');
+            setTimerActive(false);
+          };
+
+          if (!currentUser) {
+            return (
+              <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 animate-slide-up">
+                <div className="bg-slate-850 p-8 rounded-3xl shadow-2xl border border-slate-800 w-full max-w-sm text-center space-y-8">
+                  <div className="space-y-2">
+                    <div className="mx-auto bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                      <span className="text-3xl">🏋️‍♂️</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-white tracking-tight">Chi si allena oggi?</h1>
+                    <p className="text-sm text-slate-400 font-medium">Seleziona il tuo profilo</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <button onClick={() => handleLogin('joseph')} className="w-full group bg-slate-900 border border-slate-700 hover:border-emerald-500 p-4 rounded-2xl flex items-center justify-between active:scale-95 transition-all duration-300 ease-out">
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-emerald-500/20 text-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">J</div>
+                        <div className="text-left">
+                          <h2 className="text-white font-bold text-lg group-hover:text-emerald-400 transition-colors">Joseph</h2>
+                          <p className="text-xs text-slate-500 font-medium">3 Giorni Split</p>
+                        </div>
+                      </div>
+                      <span className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
+                    </button>
+
+                    <button onClick={() => handleLogin('giada')} className="w-full group bg-slate-900 border border-slate-700 hover:border-rose-500 p-4 rounded-2xl flex items-center justify-between active:scale-95 transition-all duration-300 ease-out">
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-rose-500/20 text-rose-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">G</div>
+                        <div className="text-left">
+                          <h2 className="text-white font-bold text-lg group-hover:text-rose-400 transition-colors">Giada</h2>
+                          <p className="text-xs text-slate-500 font-medium">Glutei & Upper</p>
+                        </div>
+                      </div>
+                      <span className="text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          const workoutData = WORKOUTS[currentUser];
+          const colorAccent = workoutData.accentColor;
+          
           return (
-            <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-28 select-none">
+            <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-28 select-none animate-slide-up">
               {toastMessage && (
-                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-${currentUser === 'joseph' ? 'emerald' : 'rose'}-500 text-slate-950 font-black px-6 py-3 rounded-full shadow-2xl border text-xs uppercase tracking-wider animate-pop-bounce`}>
+                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-${colorAccent}-500 text-slate-950 font-black px-6 py-3 rounded-full shadow-2xl border text-xs uppercase tracking-wider animate-pop-bounce`}>
                   {toastMessage}
                 </div>
               )}
 
-              {/* SCHERMATA LOGIN */}
-              {!currentUser ? (
-                <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 animate-slide-up">
-                  <div className="bg-slate-850 p-8 rounded-3xl shadow-2xl border border-slate-800 w-full max-w-sm text-center space-y-8">
-                    <div className="space-y-2">
-                      <div className="mx-auto bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-                        <span className="text-3xl">🏋️‍♂️</span>
+              <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <span className={`bg-${colorAccent}-500 text-slate-950 px-2 py-1 rounded-lg font-black text-xs`}>
+                    {currentUser === 'joseph' ? 'JF' : 'GF'}
+                  </span>
+                  <h1 className="text-sm font-bold tracking-tight">Tracker</h1>
+                </div>
+                <button onClick={handleLogout} className="text-[11px] font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 active:scale-95 transition-transform">
+                  👤 Cambia
+                </button>
+              </header>
+
+              <main className="max-w-md mx-auto px-3 mt-4 space-y-4">
+                
+                <div className="grid grid-cols-3 gap-1 bg-slate-850 p-1 rounded-xl border border-slate-800">
+                  {workoutData.days.map((day, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => { setActiveDayIndex(idx); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      className={`py-2.5 text-[11px] font-black rounded-lg transition-all text-center ${
+                        activeDayIndex === idx ? `bg-slate-700 text-${colorAccent}-400 shadow-sm` : 'text-slate-400'
+                      }`}
+                    >
+                      {day.name.split(' - ')[0]}
+                    </button>
+                  ))}
+                </div>
+
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">
+                  {workoutData.days[activeDayIndex]?.name}
+                </h2>
+
+                <div key={`${currentUser}-${activeDayIndex}`} className="space-y-3">
+                  {workoutData.days[activeDayIndex]?.exercises.map((ex, exIdx) => {
+                    // Ritardo sfalsato per ogni scheda: 0ms, 80ms, 160ms... crea l'effetto cascata!
+                    const animationDelay = `${exIdx * 80}ms`;
+
+                    return (
+                      <div 
+                        key={ex.id}
+                        className={`gravity-drop bg-slate-850 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3 ${animatingCards[ex.id] ? 'glow-success' : ''}`}
+                        style={{ animationDelay }}
+                      >
+                        <div className="flex justify-between items-baseline">
+                          <h3 className="text-sm font-black text-white">{exIdx + 1}. {ex.name}</h3>
+                          <span className="text-[11px] font-bold text-slate-400">Target: {ex.sets}x{ex.reps}</span>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-slate-800/60">
+                          <div className="grid grid-cols-12 text-[9px] uppercase font-black tracking-wider text-slate-500 text-center">
+                            <div className="col-span-2 text-left">Set</div>
+                            <div className="col-span-4">Kg</div>
+                            <div className="col-span-3">Reps</div>
+                            <div className="col-span-3">Difficoltà</div>
+                          </div>
+
+                          {Array.from({ length: parseInt(ex.sets, 10) || 1 }).map((_, setIdx) => {
+                            const weightKey = `${ex.id}-${setIdx}-weight`;
+                            const repsKey = `${ex.id}-${setIdx}-reps`;
+                            const rpeKey = `${ex.id}-${setIdx}-rpe`;
+                            
+                            return (
+                              <div key={setIdx} className="grid grid-cols-12 items-center gap-1.5 bg-slate-900/40 p-1 rounded-lg">
+                                <div className="col-span-2 text-xs font-black text-slate-500 text-center">#{setIdx + 1}</div>
+                                
+                                <div className="col-span-4 bg-slate-900 border border-slate-700 rounded-md flex items-center px-1 focus-within:border-emerald-500 transition-colors">
+                                  <input
+                                    type="number"
+                                    placeholder="-"
+                                    value={gymLogs[weightKey] || ''}
+                                    onChange={(e) => handleLogChange(ex.id, setIdx, 'weight', e.target.value)}
+                                    className={`w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-${colorAccent}-400`}
+                                  />
+                                  <span className="text-[9px] text-slate-500 font-bold pr-0.5">kg</span>
+                                </div>
+
+                                <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
+                                  <input
+                                    type="number"
+                                    placeholder={ex.reps}
+                                    value={gymLogs[repsKey] || ''}
+                                    onChange={(e) => handleLogChange(ex.id, setIdx, 'reps', e.target.value)}
+                                    className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-blue-400"
+                                  />
+                                </div>
+
+                                <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
+                                  <select
+                                    value={gymLogs[rpeKey] || ''}
+                                    onChange={(e) => handleLogChange(ex.id, setIdx, 'rpe', e.target.value)}
+                                    className="w-full bg-transparent text-center text-xs font-bold py-1.5 focus:outline-none text-amber-400 appearance-none"
+                                  >
+                                    <option value="">RPE</option>
+                                    {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6].map(v => (
+                                      <option key={v} value={v} className="bg-slate-900 text-white">@{v}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {ex.rest !== '0' && (
+                          <button 
+                            onClick={() => startTimer(parseInt(ex.rest, 10), ex.id)}
+                            className="w-full bg-slate-800 border border-slate-700 text-slate-300 py-2 rounded-lg text-[10px] font-bold active:scale-95 active:bg-slate-700 transition-all duration-200 ease-out mt-2"
+                          >
+                            ⏳ Serie chiusa! Pausa {formatTime(parseInt(ex.rest, 10))}
+                          </button>
+                        )}
                       </div>
-                      <h1 className="text-2xl font-black text-white tracking-tight">Chi si allena oggi?</h1>
-                      <p className="text-sm text-slate-400 font-medium">Seleziona il tuo profilo</p>
-                    </div>
+                    );
+                  })}
+                </div>
 
-                    <div className="space-y-4">
-                      <button onClick={() => handleLogin('joseph')} className="w-full group bg-slate-900 border border-slate-700 hover:border-emerald-500 p-4 rounded-2xl flex items-center justify-between active:scale-95 transition-all duration-300 ease-out">
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-emerald-500/20 text-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">J</div>
-                          <div className="text-left">
-                            <h2 className="text-white font-bold text-lg group-hover:text-emerald-400 transition-colors">Joseph</h2>
-                            <p className="text-xs text-slate-500 font-medium">3 Giorni Split</p>
-                          </div>
-                        </div>
-                        <span className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
-                      </button>
-
-                      <button onClick={() => handleLogin('giada')} className="w-full group bg-slate-900 border border-slate-700 hover:border-rose-500 p-4 rounded-2xl flex items-center justify-between active:scale-95 transition-all duration-300 ease-out">
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-rose-500/20 text-rose-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">G</div>
-                          <div className="text-left">
-                            <h2 className="text-white font-bold text-lg group-hover:text-rose-400 transition-colors">Giada</h2>
-                            <p className="text-xs text-slate-500 font-medium">Glutei & Upper</p>
-                          </div>
-                        </div>
-                        <span className="text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
-                      </button>
-                    </div>
+                <div className={`fixed bottom-4 left-3 right-3 max-w-md mx-auto bg-slate-850/95 border border-slate-700 p-3 rounded-xl shadow-2xl flex items-center justify-between backdrop-blur-md z-30 transition-all duration-300 ${timerActive ? 'scale-100 opacity-100' : 'scale-98 opacity-95'}`}>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider font-black text-slate-400">Recupero Attivo</p>
+                    <p className={`text-xl font-mono font-black text-${colorAccent}-400`}>{formatTime(timeLeft)}</p>
+                  </div>
+                  <div className="flex space-x-1.5">
+                    <button onClick={() => setTimerActive(!timerActive)} className={`px-4 py-2 text-xs font-black rounded-lg active:scale-95 transition-transform ${timerActive ? 'bg-amber-500 text-slate-950' : `bg-${colorAccent}-500 text-slate-950`}`}>
+                      {timerActive ? 'Pausa' : 'Avvia'}
+                    </button>
+                    <button onClick={() => { setTimerActive(false); setTimeLeft(timerDuration); }} className="bg-slate-900 border border-slate-700 px-3 py-2 text-xs font-bold rounded-lg text-slate-400 active:scale-95 transition-transform">Reset</button>
                   </div>
                 </div>
-              ) : (
-                /* INTERFACCIA APP COMPLETA */
-                <div className="animate-slide-up">
-                  <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <span className={`bg-${currentUser === 'joseph' ? 'emerald' : 'rose'}-500 text-slate-950 px-2 py-1 rounded-lg font-black text-xs`}>
-                        {currentUser === 'joseph' ? 'JF' : 'GF'}
-                      </span>
-                      <h1 className="text-sm font-bold tracking-tight">Tracker</h1>
-                    </div>
-                    <button onClick={handleLogout} className="text-[11px] font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 active:scale-95 transition-transform">
-                      👤 Cambia
-                    </button>
-                  </header>
 
-                  <main className="max-w-md mx-auto px-3 mt-4 space-y-4">
-                    <div className="grid grid-cols-3 gap-1 bg-slate-850 p-1 rounded-xl border border-slate-800">
-                      {WORKOUTS[currentUser].days.map((day, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => { setActiveDayIndex(idx); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                          className={`py-2.5 text-[11px] font-black rounded-lg transition-all text-center ${
-                            activeDayIndex === idx ? `bg-slate-700 text-${WORKOUTS[currentUser].accentColor}-400 shadow-sm` : 'text-slate-400'
-                          }`}
-                        >
-                          {day.name.split(' - ')[0]}
-                        </button>
-                      ))}
-                    </div>
-
-                    <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">
-                      {WORKOUTS[currentUser].days[activeDayIndex]?.name}
-                    </h2>
-
-                    {/* Contenitore degli Esercizi */}
-                    <div key={`${currentUser}-${activeDayIndex}`} className="space-y-3">
-                      {WORKOUTS[currentUser].days[activeDayIndex]?.exercises.map((ex, exIdx) => (
-                        <AnimatedExerciseCard 
-                          key={ex.id}
-                          ex={ex}
-                          exIdx={exIdx}
-                          colorAccent={WORKOUTS[currentUser].accentColor}
-                          gymLogs={gymLogs}
-                          handleLogChange={handleLogChange}
-                          startTimer={startTimer}
-                          isAnimating={animatingCards[ex.id]}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Floating Timer Bottom Bar */}
-                    <div className={`fixed bottom-4 left-3 right-3 max-w-md mx-auto bg-slate-850/95 border border-slate-700 p-3 rounded-xl shadow-2xl flex items-center justify-between backdrop-blur-md z-30 transition-all duration-300 ${timerActive ? 'scale-100 opacity-100' : 'scale-98 opacity-95'}`}>
-                      <div>
-                        <p className="text-[9px] uppercase tracking-wider font-black text-slate-400">Recupero Attivo</p>
-                        <p className={`text-xl font-mono font-black text-${WORKOUTS[currentUser].accentColor}-400`}>{formatTime(timeLeft)}</p>
-                      </div>
-                      <div className="flex space-x-1.5">
-                        <button onClick={() => setTimerActive(!timerActive)} className={`px-4 py-2 text-xs font-black rounded-lg active:scale-95 transition-transform ${timerActive ? 'bg-amber-500 text-slate-950' : `bg-${WORKOUTS[currentUser].accentColor}-500 text-slate-950`}`}>
-                          {timerActive ? 'Pausa' : 'Avvia'}
-                        </button>
-                        <button onClick={() => { setTimerActive(false); setTimeLeft(timerDuration); }} className="bg-slate-900 border border-slate-700 px-3 py-2 text-xs font-bold rounded-lg text-slate-400 active:scale-95 transition-transform">Reset</button>
-                      </div>
-                    </div>
-                  </main>
-                </div>
-              )}
+              </main>
             </div>
           );
         }
-
-        const handleLogin = (userKey) => {
-          localStorage.setItem('jf_current_user', userKey);
-          window.location.reload();
-        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
