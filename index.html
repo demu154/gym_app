@@ -9,8 +9,10 @@
     <meta name="apple-mobile-web-app-title" content="JF Tracker">
     
     <title>Joseph Fitness - My Tracker</title>
-        <link rel="icon" href="icon.png">
+    
+    <link rel="icon" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,6 +20,26 @@
                 extend: {
                     colors: {
                         slate: { 850: '#151e2e', 855: '#1a2333' }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pop-bounce': 'popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { opacity: 0, transform: 'translateY(30px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' }
+                        },
+                        slideInRight: {
+                            '0%': { opacity: 0, transform: 'translateX(20px)' },
+                            '100%': { opacity: 1, transform: 'translateX(0)' }
+                        },
+                        popBounce: {
+                            '0%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(0.97)' },
+                            '100%': { transform: 'scale(1)' }
+                        }
                     }
                 }
             }
@@ -30,13 +52,22 @@
             color: #f1f5f9; 
             -webkit-tap-highlight-color: transparent;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            overscroll-behavior-y: none;
         }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Animazione flash verde custom per il completamento serie */
+        .glow-success {
+            animation: successGlow 0.6s ease-out;
+        }
+        @keyframes successGlow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); border-color: rgba(16, 185, 129, 0.8); }
+            70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); border-color: #1e293b; }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); border-color: #1e293b; }
+        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -49,7 +80,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // DATABASE DELLE DUE SCHEDE CON RECUPERO A 4 MINUTI (240s)
         const WORKOUTS = {
           joseph: {
             clientName: 'Joseph',
@@ -70,7 +100,7 @@
                 name: 'Giorno 2 - Spalle, Gambe & Cardio',
                 exercises: [
                   { id: 'j-g2-ex1', name: 'Military Press', sets: '2', reps: '12', rest: '240' },
-                  { id: 'j-g2-ex2', name: 'Alzate Laterali Cavo', sets: '2', reps: '12', rest: '240' },
+                  { id: 'j-g2-ex2', name: 'Alzate frontali cavo', sets: '2', reps: '12', rest: '240' },
                   { id: 'j-g2-ex3', name: 'Leg Extension', sets: '2', reps: '12', rest: '240' },
                   { id: 'j-g2-ex4', name: 'Pressa', sets: '2', reps: '6', rest: '240' },
                   { id: 'j-g2-ex5', name: 'Adduttori', sets: '2', reps: '12', rest: '240' },
@@ -133,8 +163,10 @@
           const [activeDayIndex, setActiveDayIndex] = useState(0);
           const [toastMessage, setToastMessage] = useState(null);
           const [gymLogs, setGymLogs] = useState({});
+          
+          // Stato per le animazioni dinamiche delle schede
+          const [animatingCards, setAnimatingCards] = useState({});
 
-          // Imposta 240 secondi (4 minuti) come timer base all'avvio
           const [timerActive, setTimerActive] = useState(false);
           const [timerDuration, setTimerDuration] = useState(240);
           const [timeLeft, setTimeLeft] = useState(240);
@@ -180,11 +212,19 @@
             });
           };
 
-          const startTimer = (seconds) => {
+          const startTimer = (seconds, exId) => {
+            // Avvia il timer
             setTimerDuration(seconds);
             setTimeLeft(seconds);
             setTimerActive(true);
-            showToast(`⏱️ Timer avviato: ${formatTime(seconds)}`);
+            
+            // Attiva l'animazione di completamento sulla specifica scheda
+            if (exId) {
+                setAnimatingCards(prev => ({ ...prev, [exId]: true }));
+                setTimeout(() => {
+                    setAnimatingCards(prev => ({ ...prev, [exId]: false }));
+                }, 600); // Rimuove la classe dopo che l'animazione è finita
+            }
           };
 
           const formatTime = (secs) => {
@@ -205,26 +245,25 @@
             setTimerActive(false);
           };
 
-          // SCHERMATA LOGIN
           if (!currentUser) {
             return (
-              <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 fade-in">
+              <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 animate-slide-up">
                 <div className="bg-slate-850 p-8 rounded-3xl shadow-2xl border border-slate-800 w-full max-w-sm text-center space-y-8">
                   <div className="space-y-2">
                     <div className="mx-auto bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
                       <span className="text-3xl">🏋️‍♂️</span>
                     </div>
                     <h1 className="text-2xl font-black text-white tracking-tight">Chi si allena oggi?</h1>
-                    <p className="text-sm text-slate-400 font-medium">Seleziona il tuo profilo per caricare la scheda</p>
+                    <p className="text-sm text-slate-400 font-medium">Seleziona il tuo profilo</p>
                   </div>
 
                   <div className="space-y-4">
                     <button 
                       onClick={() => handleLogin('joseph')}
-                      className="w-full group relative bg-slate-900 border border-slate-700 hover:border-emerald-500 p-4 rounded-2xl transition-all duration-300 flex items-center justify-between"
+                      className="w-full group relative bg-slate-900 border border-slate-700 hover:border-emerald-500 p-4 rounded-2xl flex items-center justify-between active:scale-95 transition-all duration-300 ease-out"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="bg-emerald-500/20 text-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">J</div>
+                        <div className="bg-emerald-500/20 text-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg transition-transform group-active:scale-90">J</div>
                         <div className="text-left">
                           <h2 className="text-white font-bold text-lg group-hover:text-emerald-400 transition-colors">Joseph</h2>
                           <p className="text-xs text-slate-500 font-medium">3 Giorni Split</p>
@@ -235,10 +274,10 @@
 
                     <button 
                       onClick={() => handleLogin('giada')}
-                      className="w-full group relative bg-slate-900 border border-slate-700 hover:border-rose-500 p-4 rounded-2xl transition-all duration-300 flex items-center justify-between"
+                      className="w-full group relative bg-slate-900 border border-slate-700 hover:border-rose-500 p-4 rounded-2xl flex items-center justify-between active:scale-95 transition-all duration-300 ease-out"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="bg-rose-500/20 text-rose-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">G</div>
+                        <div className="bg-rose-500/20 text-rose-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg transition-transform group-active:scale-90">G</div>
                         <div className="text-left">
                           <h2 className="text-white font-bold text-lg group-hover:text-rose-400 transition-colors">Giada</h2>
                           <p className="text-xs text-slate-500 font-medium">Glutei & Upper</p>
@@ -252,19 +291,18 @@
             );
           }
 
-          // SCHERMATA ALLENAMENTO
           const workoutData = WORKOUTS[currentUser];
           const colorAccent = currentUser === 'joseph' ? 'emerald' : 'rose';
           
           return (
-            <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-28 select-none fade-in">
+            <div className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-28 select-none animate-slide-up">
               {toastMessage && (
-                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-${colorAccent}-500 text-slate-950 font-black px-6 py-3 rounded-full shadow-2xl border border-${colorAccent}-400 text-xs uppercase tracking-wider`}>
+                <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-${colorAccent}-500 text-slate-950 font-black px-6 py-3 rounded-full shadow-2xl border border-${colorAccent}-400 text-xs uppercase tracking-wider animate-pop-bounce`}>
                   {toastMessage}
                 </div>
               )}
 
-              <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+              <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-3 flex justify-between items-center transition-all">
                 <div className="flex items-center space-x-2">
                   <span className={`bg-${colorAccent}-500 text-slate-950 px-2 py-1 rounded-lg font-black text-xs`}>
                     {currentUser === 'joseph' ? 'JF' : 'GF'}
@@ -273,7 +311,7 @@
                 </div>
                 <button 
                   onClick={handleLogout}
-                  className="text-[11px] font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center space-x-1"
+                  className="text-[11px] font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 active:scale-95 transition-transform flex items-center space-x-1"
                 >
                   <span>👤 Cambia</span>
                 </button>
@@ -286,7 +324,7 @@
                     <button
                       key={idx}
                       onClick={() => setActiveDayIndex(idx)}
-                      className={`py-2.5 text-[11px] font-black rounded-lg transition-all text-center ${
+                      className={`py-2.5 text-[11px] font-black rounded-lg transition-colors duration-300 text-center active:scale-95 ${
                         activeDayIndex === idx ? `bg-slate-700 text-${colorAccent}-400 shadow-sm` : 'text-slate-400'
                       }`}
                     >
@@ -299,9 +337,14 @@
                   {workoutData.days[activeDayIndex]?.name}
                 </h2>
 
-                <div className="space-y-3">
+                {/* Sfruttiamo la key dinamica per far scorrere gli esercizi quando cambia il giorno */}
+                <div key={activeDayIndex} className="space-y-3 animate-slide-in-right">
                   {workoutData.days[activeDayIndex]?.exercises.map((ex, exIdx) => (
-                    <div key={ex.id} className="bg-slate-850 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+                    <div 
+                        key={ex.id} 
+                        className={`bg-slate-850 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3 transition-all duration-300 
+                        ${animatingCards[ex.id] ? 'glow-success' : ''}`}
+                    >
                       
                       <div className="flex justify-between items-baseline">
                         <h3 className="text-sm font-black text-white">{exIdx + 1}. {ex.name}</h3>
@@ -325,7 +368,7 @@
                             <div key={setIdx} className="grid grid-cols-12 items-center gap-1.5 bg-slate-900/40 p-1 rounded-lg">
                               <div className="col-span-2 text-xs font-black text-slate-500 text-center">#{setIdx + 1}</div>
                               
-                              <div className="col-span-4 bg-slate-900 border border-slate-700 rounded-md flex items-center px-1">
+                              <div className="col-span-4 bg-slate-900 border border-slate-700 rounded-md flex items-center px-1 focus-within:border-emerald-500 transition-colors">
                                 <input
                                   type="number"
                                   placeholder="-"
@@ -336,7 +379,7 @@
                                 <span className="text-[9px] text-slate-500 font-bold pr-0.5">kg</span>
                               </div>
 
-                              <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
+                              <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md focus-within:border-blue-400 transition-colors">
                                 <input
                                   type="number"
                                   placeholder={ex.reps}
@@ -346,7 +389,7 @@
                                 />
                               </div>
 
-                              <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md">
+                              <div className="col-span-3 bg-slate-900 border border-slate-700 rounded-md focus-within:border-amber-400 transition-colors">
                                 <select
                                   value={gymLogs[rpeKey] || ''}
                                   onChange={(e) => handleLogChange(ex.id, setIdx, 'rpe', e.target.value)}
@@ -365,8 +408,8 @@
                       
                       {ex.rest !== '0' && (
                         <button 
-                          onClick={() => startTimer(parseInt(ex.rest, 10))}
-                          className="w-full bg-slate-800 border border-slate-700 text-slate-400 py-1.5 rounded-lg text-[10px] font-bold active:bg-slate-750 transition-all mt-1"
+                          onClick={() => startTimer(parseInt(ex.rest, 10), ex.id)}
+                          className="w-full bg-slate-800 border border-slate-700 text-slate-300 py-2 rounded-lg text-[10px] font-bold active:scale-95 active:bg-slate-700 transition-all duration-200 ease-out mt-2"
                         >
                           ⏳ Serie chiusa! Pausa {formatTime(parseInt(ex.rest, 10))}
                         </button>
@@ -375,16 +418,17 @@
                   ))}
                 </div>
 
-                <div className="fixed bottom-4 left-3 right-3 max-w-md mx-auto bg-slate-850/95 border border-slate-700 p-3 rounded-xl shadow-2xl flex items-center justify-between backdrop-blur-md z-30">
+                {/* Barra Animata per il Timer */}
+                <div className={`fixed bottom-4 left-3 right-3 max-w-md mx-auto bg-slate-850/95 border border-slate-700 p-3 rounded-xl shadow-2xl flex items-center justify-between backdrop-blur-md z-30 transition-transform duration-300 ${timerActive ? 'translate-y-0 scale-100' : 'translate-y-1 opacity-90'}`}>
                   <div>
                     <p className="text-[9px] uppercase tracking-wider font-black text-slate-400">Recupero Attivo</p>
                     <p className={`text-xl font-mono font-black text-${colorAccent}-400`}>{formatTime(timeLeft)}</p>
                   </div>
                   <div className="flex space-x-1.5">
-                    <button onClick={() => setTimerActive(!timerActive)} className={`px-4 py-2 text-xs font-black rounded-lg ${timerActive ? 'bg-amber-500 text-slate-950' : `bg-${colorAccent}-500 text-slate-950`}`}>
+                    <button onClick={() => setTimerActive(!timerActive)} className={`px-4 py-2 text-xs font-black rounded-lg active:scale-95 transition-transform ${timerActive ? 'bg-amber-500 text-slate-950' : `bg-${colorAccent}-500 text-slate-950`}`}>
                       {timerActive ? 'Pausa' : 'Avvia'}
                     </button>
-                    <button onClick={() => { setTimerActive(false); setTimeLeft(timerDuration); }} className="bg-slate-900 border border-slate-700 px-3 py-2 text-xs font-bold rounded-lg text-slate-400">Reset</button>
+                    <button onClick={() => { setTimerActive(false); setTimeLeft(timerDuration); }} className="bg-slate-900 border border-slate-700 px-3 py-2 text-xs font-bold rounded-lg text-slate-400 active:scale-95 transition-transform">Reset</button>
                   </div>
                 </div>
 
